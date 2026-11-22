@@ -56,3 +56,23 @@ Researcher (done), Engineer, QA, Security Officer, Auditor, plan check and plain
 - Season and episode labels: Kometa doesn't look these up by ID.
 - NFO labels with a bare local number (no `tvdb_`/`tmdb_`/`imdb_`), which can't be mapped to any outside site. They stay unsupported, as for movies.
 - Any tidy-up of the movie code from #3843.
+
+## Record (2026-11-22)
+
+- **Gate A:** approved on PR #1 at the plan commit `d172a322`.
+- **Built:** commit `b1562692`, "Recognize TVDb, TMDb and IMDb IDs in Plex NFO Series agent GUIDs". It changes `modules/convert.py` (+10 lines in `scan_guid`), `tests/test_convert.py` (+68 lines, 16 new test cases) and `CHANGELOG.md` (one `### Fixed` line under `[Unreleased]`). The first build put the changelog line under the released v2.5.5. It was moved to `[Unreleased]` before the checks ran.
+- **Checks:**
+  - Full suite: 4,946 tests pass on Python 3.12 and 3.13, and coverage is 61% (the minimum is 48%).
+  - black, isort and flake8 pass. The pyright baseline is unchanged (+0). bandit shows the same 29 findings as `nightly`. `kometa.py --help` runs.
+  - Pre-commit passes, except the spelling check, which flags "NFO" in this plan file. This file never goes upstream.
+  - The six tests that check the new behaviour fail without the fix.
+  - The fix commit applies cleanly on `nightly` by itself.
+  - QA passed, the security review was clear, and the audit approved with no findings. The audit also tried the fix against a real cache file.
+- **Not checked here:** the Windows tests (they run on GitHub once the upstream PR is open), and a real Plex server with the NFO agent.
+- **Decisions:**
+  - Kept the TMDb case for shows. It's cheap, tested, and the same format as the movie fix. The PR text offers to drop it.
+  - Kept the notes in this plan file instead of adding roadmap and log files under `docs/`, because `docs/` is Kometa's documentation site.
+- **Rejected findings:**
+  - "Move the test imports to the top of the file" (QA, minor). Rejected: the movie tests from #3843 import the same way, inside the test.
+  - "Huge ID numbers can raise an error" (security, informational). Rejected for this PR: it's the same as the movie code, the input comes from the user's own Plex server, and it isn't a regression.
+- **Delivery:** after Gate B, the fix commit alone goes on `fix-nfo-series-guids-3879` on the fork, based on the latest `nightly`, and is re-checked there. Sean opens the upstream PR to `nightly` with the prepared text.
